@@ -8,7 +8,7 @@ Este proyecto es el desarrollo de una aplicación web de tipo "Red Social", real
 
 ### Frontend
 - **Framework:** Angular
-- **UI Kit:** Taiga UI (Diseño profesional y componentes modernos)
+- **UI:** Tailwind CSS
 - **Lenguaje:** TypeScript
 
 ### Backend

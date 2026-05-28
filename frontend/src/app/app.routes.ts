@@ -21,7 +21,8 @@ export const routes: Routes = [
         path: 'perfil',
         loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil),
       },
+      { path: '', redirectTo: 'publicaciones', pathMatch: 'full' },
     ],
   },
-  { path: '', redirectTo: 'login', pathMatch: 'full' },
+  { path: '**', redirectTo: 'login', pathMatch: 'full' },
 ];

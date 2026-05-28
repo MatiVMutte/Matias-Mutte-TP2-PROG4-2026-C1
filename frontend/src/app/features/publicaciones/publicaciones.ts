@@ -1,17 +1,6 @@
-import { Component, signal } from '@angular/core';
-
-interface Publicacion {
-  id: number;
-  autor: string;
-  avatar: string;
-  fecha: string;
-  titulo: string;
-  mensaje: string;
-  imagen?: string;
-  likes: number;
-  liked: boolean;
-  comentarios: number;
-}
+import { Component, signal, inject, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { Publicacion } from './models/publicacion.model';
 
 @Component({
   selector: 'app-publicaciones',
@@ -20,7 +9,10 @@ interface Publicacion {
   templateUrl: './publicaciones.html',
   styleUrl: './publicaciones.css',
 })
-export class Publicaciones {
+export class Publicaciones implements OnInit {
+  private readonly title = inject(Title);
+
+  ngOnInit(): void { this.title.setTitle('Publicaciones | AllUTN'); }
   readonly publicaciones = signal<Publicacion[]>([
     {
       id: 1,

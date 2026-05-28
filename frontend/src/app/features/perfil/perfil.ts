@@ -1,13 +1,6 @@
-import { Component } from '@angular/core';
-
-interface UltimaPublicacion {
-  id: number;
-  titulo: string;
-  mensaje: string;
-  fecha: string;
-  likes: number;
-  comentarios: { autor: string; texto: string; fecha: string }[];
-}
+import { Component, inject, OnInit } from '@angular/core';
+import { Title } from '@angular/platform-browser';
+import { UltimaPublicacion } from './models/perfil.models';
 
 @Component({
   selector: 'app-perfil',
@@ -16,7 +9,10 @@ interface UltimaPublicacion {
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
-export class Perfil {
+export class Perfil implements OnInit {
+  private readonly title = inject(Title);
+
+  ngOnInit(): void { this.title.setTitle('Mi perfil | AllUTN'); }
   readonly usuario = {
     nombre: 'Juan',
     apellido: 'Pérez',

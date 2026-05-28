@@ -1,8 +1,10 @@
 import { Component, signal, OnInit, DestroyRef, inject } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ToastService } from '../../../shared/services/toast.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-login',
@@ -19,10 +21,13 @@ export class Login implements OnInit {
   readonly passwordChecks = signal({ minLength: false, hasUppercase: false, hasNumber: false });
 
   private readonly toast = inject(ToastService);
+  private readonly title = inject(Title);
+  private readonly authService = inject(AuthService);
 
   readonly form: FormGroup;
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {
+    this.title.setTitle('Iniciar sesión | AllUTN');
     this.form = this.fb.group({
       identifier: ['', [Validators.required, Validators.minLength(3)]],
       password: ['', [Validators.required]],
@@ -69,10 +74,16 @@ export class Login implements OnInit {
       return;
     }
     this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.toast.success('¡Bienvenido de vuelta!');
-      setTimeout(() => this.router.navigate(['/publicaciones']), 800);
-    }, 1200);
+    this.authService.login(this.form.value).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.toast.success('¡Bienvenido de vuelta!');
+        setTimeout(() => this.router.navigate(['/publicaciones']), 800);
+      },
+      error: (err: Error) => {
+        this.isLoading.set(false);
+        this.toast.error(err.message);
+      },
+    });
   }
 }

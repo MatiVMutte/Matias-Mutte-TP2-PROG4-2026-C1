@@ -1,8 +1,10 @@
 import { Component, signal, OnInit, DestroyRef, inject } from '@angular/core';
+import { Title } from '@angular/platform-browser';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { ToastService } from '../../../shared/services/toast.service';
+import { ToastService } from '../../../../shared/services/toast.service';
+import { AuthService } from '../../../../core/services/auth.service';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -17,10 +19,7 @@ function passwordMatchValidator(control: AbstractControl): ValidationErrors | nu
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [
-    ReactiveFormsModule,
-    RouterLink,
-  ],
+  imports: [ReactiveFormsModule, RouterLink],
   templateUrl: './register.html',
   styleUrl: './register.css',
 })
@@ -37,8 +36,11 @@ export class Register implements OnInit {
   readonly form: FormGroup;
 
   private readonly toast = inject(ToastService);
+  private readonly title = inject(Title);
+  private readonly authService = inject(AuthService);
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {
+    this.title.setTitle('Registrarse | AllUTN');
     this.form = this.fb.group(
       {
         nombre: ['', [Validators.required, Validators.minLength(2), Validators.pattern(/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]+$/)]],
@@ -128,10 +130,17 @@ export class Register implements OnInit {
       return;
     }
     this.isLoading.set(true);
-    setTimeout(() => {
-      this.isLoading.set(false);
-      this.toast.success('¡Cuenta creada con éxito! Ya podés iniciar sesión.');
-      setTimeout(() => this.router.navigate(['/login']), 1500);
-    }, 1200);
+    const { repeatPassword: _repeat, profileImage, ...rest } = this.form.value;
+    this.authService.register({ ...rest, profileImage }).subscribe({
+      next: () => {
+        this.isLoading.set(false);
+        this.toast.success('¡Cuenta creada con éxito! Ya podés iniciar sesión.');
+        setTimeout(() => this.router.navigate(['/login']), 1500);
+      },
+      error: (err: Error) => {
+        this.isLoading.set(false);
+        this.toast.error(err.message);
+      },
+    });
   }
 }

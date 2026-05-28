@@ -1,0 +1,98 @@
+<div class="min-h-screen">
+
+  <div class="max-w-2xl mx-auto px-4 py-8 space-y-6">
+
+    <!-- Tarjeta de perfil -->
+    <div class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden">
+
+      <!-- Banner -->
+      <div class="h-24 bg-linear-to-r from-blue-600 to-blue-400"></div>
+
+      <!-- Info principal -->
+      <div class="px-6 pb-6">
+        <div class="flex items-end gap-4 -mt-10 mb-4">
+          <div class="w-20 h-20 rounded-full bg-blue-700 border-4 border-blue-900 flex items-center justify-center text-white font-bold text-2xl shrink-0">
+            {{ getInitials() }}
+          </div>
+          <div class="pb-1">
+            <h1 class="text-white font-bold text-xl">{{ usuario.nombre }} {{ usuario.apellido }}</h1>
+            <p class="text-blue-300 text-sm">&#64;{{ usuario.username }}</p>
+          </div>
+          <div class="ml-auto pb-1">
+            <span class="text-xs px-3 py-1 rounded-full font-medium"
+              [class]="usuario.perfil === 'administrador' ? 'bg-yellow-500/20 text-yellow-300 border border-yellow-400/30' : 'bg-blue-500/20 text-blue-300 border border-blue-400/30'">
+              {{ usuario.perfil === 'administrador' ? '⭐ Administrador' : 'Usuario' }}
+            </span>
+          </div>
+        </div>
+
+        @if (usuario.descripcion) {
+          <p class="text-blue-100 text-sm mb-4">{{ usuario.descripcion }}</p>
+        }
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <div class="flex items-center gap-2 text-blue-200">
+            <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+            </svg>
+            {{ usuario.correo }}
+          </div>
+          <div class="flex items-center gap-2 text-blue-200">
+            <svg class="w-4 h-4 text-blue-400 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+            </svg>
+            {{ usuario.fechaNacimiento }}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Últimas publicaciones -->
+    <div class="space-y-4">
+      <h2 class="text-white font-bold text-lg px-1">Mis últimas publicaciones</h2>
+
+      @for (post of ultimasPublicaciones; track post.id) {
+        <article class="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-5 space-y-3">
+
+          <div>
+            <h3 class="text-white font-semibold text-sm">{{ post.titulo }}</h3>
+            <p class="text-blue-300 text-xs mt-0.5">{{ post.fecha }}</p>
+          </div>
+          <p class="text-blue-100 text-sm leading-relaxed">{{ post.mensaje }}</p>
+
+          <div class="flex items-center gap-4 text-xs text-blue-300 pt-1 border-t border-white/10">
+            <span class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.633 10.25c.806 0 1.533-.446 2.031-1.08a9.041 9.041 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75a.75.75 0 0 1 .75-.75 2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282m0 0h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H13.48c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23H5.904m10.598-9.75H14.25M5.904 18.5c.083.205.173.405.27.602.197.4-.078.898-.523.898h-.908c-.889 0-1.713-.518-1.972-1.368a12 12 0 0 1-.521-3.507c0-1.553.295-3.036.831-4.398C3.387 9.953 4.167 9.5 5 9.5h1.053c.472 0 .745.556.5.96a8.958 8.958 0 0 0-1.302 4.665c0 1.194.232 2.333.654 3.375Z" />
+              </svg>
+              {{ post.likes }} me gusta
+            </span>
+            <span class="flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+              </svg>
+              {{ post.comentarios.length }} comentarios
+            </span>
+          </div>
+
+          <!-- Comentarios -->
+          @if (post.comentarios.length > 0) {
+            <div class="space-y-2 pt-1">
+              @for (comentario of post.comentarios; track comentario.autor) {
+                <div class="bg-white/5 rounded-xl px-3 py-2">
+                  <div class="flex items-center gap-2 mb-0.5">
+                    <span class="text-blue-300 text-xs font-semibold">{{ comentario.autor }}</span>
+                    <span class="text-blue-400 text-xs">· {{ comentario.fecha }}</span>
+                  </div>
+                  <p class="text-blue-100 text-xs">{{ comentario.texto }}</p>
+                </div>
+              }
+            </div>
+          }
+
+        </article>
+      }
+    </div>
+
+  </div>
+</div>

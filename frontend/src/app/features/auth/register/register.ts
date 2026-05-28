@@ -2,6 +2,7 @@ import { Component, signal, OnInit, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ToastService } from '../../../shared/services/toast.service';
 
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
@@ -34,6 +35,8 @@ export class Register implements OnInit {
   readonly showRepeatPassword = signal(false);
 
   readonly form: FormGroup;
+
+  private readonly toast = inject(ToastService);
 
   constructor(private readonly fb: FormBuilder, private readonly router: Router) {
     this.form = this.fb.group(
@@ -113,11 +116,22 @@ export class Register implements OnInit {
   }
 
   onSubmit(): void {
+    const checks = this.passwordChecks();
+    if (!checks.minLength || !checks.hasUppercase || !checks.hasNumber) {
+      this.toast.error('La contraseña no cumple los requisitos.');
+      this.form.markAllAsTouched();
+      return;
+    }
     if (this.form.invalid) {
+      this.toast.error('Completá todos los campos correctamente.');
       this.form.markAllAsTouched();
       return;
     }
     this.isLoading.set(true);
-    console.log(this.form.value);
+    setTimeout(() => {
+      this.isLoading.set(false);
+      this.toast.success('¡Cuenta creada con éxito! Ya podés iniciar sesión.');
+      setTimeout(() => this.router.navigate(['/login']), 1500);
+    }, 1200);
   }
 }

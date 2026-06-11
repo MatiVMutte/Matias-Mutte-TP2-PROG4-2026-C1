@@ -12,5 +12,5 @@
     "outDir": "./dist",
     "baseUrl": "."
   },
-  "include": ["api/**/*", "backend/src/**/*"]
+  "include": ["api/**/*"]
 }

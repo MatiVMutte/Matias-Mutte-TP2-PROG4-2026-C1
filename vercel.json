@@ -1,15 +1,14 @@
 {
   "version": 2,
-  "buildCommand": "cd frontend && npm ci && npm run build",
-  "outputDirectory": "frontend/dist/frontend/browser",
-  "functions": {
-    "api/index.ts": {
-      "maxDuration": 30,
-      "includeFiles": "backend/src/**"
+  "experimentalServices": {
+    "frontend": {
+      "root": "frontend",
+      "routePrefix": "/",
+      "framework": "angular"
+    },
+    "backend": {
+      "root": "backend",
+      "routePrefix": "/_/backend"
     }
-  },
-  "rewrites": [
-    { "source": "/api/:path*", "destination": "/api/index.ts" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  }
 }

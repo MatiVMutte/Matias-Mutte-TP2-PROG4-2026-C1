@@ -1,15 +1,15 @@
 {
   "version": 2,
+  "buildCommand": "cd frontend && npm ci && npm run build",
+  "outputDirectory": "frontend/dist/frontend/browser",
   "experimentalServices": {
-    "frontend": {
-      "root": "frontend",
-      "routePrefix": "/",
-      "framework": "angular"
-    },
     "backend": {
       "root": "backend",
       "routePrefix": "/_/backend",
       "framework": "nestjs"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/((?!_/).*)", "destination": "/index.html" }
+  ]
 }

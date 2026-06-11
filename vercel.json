@@ -9,7 +9,7 @@
     "backend": {
       "root": "backend",
       "routePrefix": "/_/backend",
-      "entrypoint": "dist/main.js"
+      "framework": "nestjs"
     }
   }
 }

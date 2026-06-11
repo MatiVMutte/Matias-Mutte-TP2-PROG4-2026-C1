@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { User } from '../models/user.model';
 import { LoginPayload, RegisterPayload } from '../../features/auth/models/auth.models';
+import { environment } from '../../../environments/environment';
 
 export type { LoginPayload, RegisterPayload };
 
@@ -18,7 +19,7 @@ const USER_KEY = 'allutn_user';
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:3001';
+  private readonly API_URL = environment.apiUrl;
 
   readonly currentUser = signal<User | null>(this.loadUser());
 

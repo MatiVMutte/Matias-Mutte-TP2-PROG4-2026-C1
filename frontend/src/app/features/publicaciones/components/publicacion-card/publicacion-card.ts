@@ -1,6 +1,7 @@
 import { Component, input, output, computed, inject } from '@angular/core';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../../../core/services/auth.service';
+import { environment } from '../../../../../environments/environment';
 
 @Component({
   selector: 'app-publicacion-card',
@@ -50,6 +51,11 @@ export class PublicacionCard {
     if (diffHours < 24) return `hace ${diffHours} h`;
     if (diffDays < 7) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
     return date.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  getImageUrl(url: string | undefined): string {
+    if (!url) return '';
+    return url.startsWith('http') ? url : `${environment.apiUrl.replace('/api', '')}${url}`;
   }
 
   like(): void {

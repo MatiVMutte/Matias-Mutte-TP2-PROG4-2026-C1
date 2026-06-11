@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { SupabaseStorageService } from '../../shared/services/supabase-storage.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -21,7 +22,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtAuthGuard, JwtStrategy],
-  exports: [AuthService, JwtAuthGuard, JwtModule],
+  providers: [AuthService, JwtAuthGuard, JwtStrategy, SupabaseStorageService],
+  exports: [AuthService, JwtAuthGuard, JwtModule, SupabaseStorageService],
 })
 export class AuthModule {}

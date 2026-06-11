@@ -1,10 +1,13 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { AuthService } from '../../core/services/auth.service';
 import { PublicacionesService } from '../publicaciones/services/publicaciones.service';
+import { ComentariosService } from '../publicaciones/services/comentarios.service';
 import { ToastService } from '../../shared/services/toast.service';
 import { Publicacion } from '../publicaciones/models/publicacion.model';
+import { Comentario } from '../publicaciones/models/comentario.model';
 import { Router } from '@angular/router';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-perfil',
@@ -17,14 +20,19 @@ export class Perfil implements OnInit {
   private readonly title = inject(Title);
   private readonly authService = inject(AuthService);
   private readonly publicacionesService = inject(PublicacionesService);
+  private readonly comentariosService = inject(ComentariosService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
   readonly currentUser = this.authService.currentUser;
   readonly ultimasPublicaciones = signal<Publicacion[]>([]);
+  readonly comentariosPorPublicacion = signal<Map<string, Comentario[]>>(new Map());
   readonly isLoading = signal(true);
 
-  readonly API_URL = 'http://localhost:3001';
+  getImageUrl(url: string | undefined): string {
+    if (!url) return '';
+    return url.startsWith('http') ? url : `${environment.apiUrl.replace('/api', '')}${url}`;
+  }
 
   ngOnInit(): void {
     this.title.setTitle('Mi perfil | AllUTN');
@@ -37,12 +45,28 @@ export class Perfil implements OnInit {
       next: (res) => {
         this.ultimasPublicaciones.set(res.publicaciones);
         this.isLoading.set(false);
+        res.publicaciones.forEach(pub => {
+          this.comentariosService.getByPublicacion(pub._id, 0, 5).subscribe({
+            next: (r) => {
+              this.comentariosPorPublicacion.update(map => {
+                const updated = new Map(map);
+                updated.set(pub._id, r.comentarios);
+                return updated;
+              });
+            },
+            error: () => {},
+          });
+        });
       },
       error: (err: Error) => {
         this.toast.error(err.message);
         this.isLoading.set(false);
       },
     });
+  }
+
+  getComentarios(publicacionId: string): Comentario[] {
+    return this.comentariosPorPublicacion().get(publicacionId) ?? [];
   }
 
   getInitials(): string {

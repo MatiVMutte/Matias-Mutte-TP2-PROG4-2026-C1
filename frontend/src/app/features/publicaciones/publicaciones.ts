@@ -3,6 +3,7 @@ import { Title } from '@angular/platform-browser';
 import { Publicacion } from './models/publicacion.model';
 import { PublicacionesService } from './services/publicaciones.service';
 import { ToastService } from '../../shared/services/toast.service';
+import { AuthService } from '../../core/services/auth.service';
 import { PublicacionCard } from './components/publicacion-card/publicacion-card';
 import { NuevaPublicacionModal } from './components/nueva-publicacion-modal/nueva-publicacion-modal';
 
@@ -17,6 +18,7 @@ export class Publicaciones implements OnInit {
   private readonly title = inject(Title);
   private readonly publicacionesService = inject(PublicacionesService);
   private readonly toast = inject(ToastService);
+  private readonly authService = inject(AuthService);
 
   readonly publicaciones = signal<Publicacion[]>([]);
   readonly isLoading = signal(false);
@@ -77,13 +79,20 @@ export class Publicaciones implements OnInit {
   }
 
   onLike(id: string): void {
-    this.publicacionesService.toggleLike(id).subscribe({
-      next: (res) => {
+    const user = this.authService.currentUser();
+    if (!user) return;
+    const post = this.publicaciones().find(p => p._id === id);
+    if (!post) return;
+    const alreadyLiked = post.likes.includes(user._id);
+    const action$ = alreadyLiked
+      ? this.publicacionesService.unlike(id)
+      : this.publicacionesService.like(id);
+
+    action$.subscribe({
+      next: (res: { likes: number }) => {
         this.publicaciones.update(list =>
           list.map(p => {
             if (p._id !== id) return p;
-            const user = JSON.parse(localStorage.getItem('allutn_user') ?? '{}');
-            const alreadyLiked = p.likes.includes(user._id);
             const newLikes = alreadyLiked
               ? p.likes.filter(l => l !== user._id)
               : [...p.likes, user._id];

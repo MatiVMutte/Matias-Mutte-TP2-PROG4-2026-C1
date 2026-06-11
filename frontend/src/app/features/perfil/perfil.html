@@ -13,7 +13,7 @@
         <div class="px-6 pb-6">
           <div class="flex items-end gap-4 -mt-10 mb-4">
             @if (usuario.avatarUrl) {
-              <img [src]="API_URL + usuario.avatarUrl" alt="Avatar"
+              <img [src]="getImageUrl(usuario.avatarUrl)" alt="Avatar"
                 class="w-20 h-20 rounded-full border-4 border-blue-900 object-cover shrink-0" />
             } @else {
               <div class="w-20 h-20 rounded-full bg-blue-700 border-4 border-blue-900 flex items-center justify-center text-white font-bold text-2xl shrink-0">
@@ -79,7 +79,7 @@
               <p class="text-blue-100 text-sm leading-relaxed">{{ post.mensaje }}</p>
 
               @if (post.imagenUrl) {
-                <img [src]="API_URL + post.imagenUrl" alt="Imagen"
+                <img [src]="getImageUrl(post.imagenUrl)" alt="Imagen"
                   class="w-full rounded-xl object-cover max-h-48" />
               }
 
@@ -90,7 +90,35 @@
                   </svg>
                   {{ post.likesCount }} me gusta
                 </span>
+                <span class="flex items-center gap-1">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                  </svg>
+                  {{ getComentarios(post._id).length }} comentario{{ getComentarios(post._id).length !== 1 ? 's' : '' }}
+                </span>
               </div>
+
+              <!-- Comentarios -->
+              @if (getComentarios(post._id).length > 0) {
+                <div class="space-y-2 pt-2 border-t border-white/10">
+                  @for (comentario of getComentarios(post._id); track comentario._id) {
+                    <div class="flex gap-2 text-xs">
+                      <div class="w-6 h-6 rounded-full bg-blue-700 flex items-center justify-center text-white font-semibold shrink-0 text-[10px]">
+                        {{ comentario.autorData.nombre[0] + comentario.autorData.apellido[0] }}
+                      </div>
+                      <div class="flex-1 bg-white/5 rounded-xl px-3 py-2">
+                        <span class="text-blue-300 font-medium">{{ comentario.autorData.nombre }} {{ comentario.autorData.apellido }}</span>
+                        @if (comentario.modificado) {
+                          <span class="text-blue-500 ml-1">(editado)</span>
+                        }
+                        <p class="text-blue-100 mt-0.5">{{ comentario.mensaje }}</p>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <p class="text-xs text-blue-400 pt-1 border-t border-white/10">Sin comentarios aún.</p>
+              }
 
             </article>
           }

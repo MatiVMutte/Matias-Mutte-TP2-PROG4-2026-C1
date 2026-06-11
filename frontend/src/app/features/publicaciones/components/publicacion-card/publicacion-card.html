@@ -4,7 +4,7 @@
   <div class="flex items-center justify-between">
     <div class="flex items-center gap-3">
       @if (post().autorData?.avatarUrl) {
-        <img [src]="'http://localhost:3001' + post().autorData!.avatarUrl"
+        <img [src]="getImageUrl(post().autorData!.avatarUrl)"
           alt="Avatar"
           class="w-10 h-10 rounded-full object-cover shrink-0" />
       } @else {
@@ -42,7 +42,7 @@
 
   <!-- Imagen -->
   @if (post().imagenUrl) {
-    <img [src]="'http://localhost:3001' + post().imagenUrl"
+    <img [src]="getImageUrl(post().imagenUrl)"
       alt="Imagen de la publicación"
       class="w-full rounded-xl object-cover max-h-72" />
   }

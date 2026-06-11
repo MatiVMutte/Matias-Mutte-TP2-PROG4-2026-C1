@@ -7,11 +7,12 @@ import {
   PublicacionesResponse,
   CreatePublicacionPayload,
 } from '../models/publicacion.model';
+import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class PublicacionesService {
   private readonly http = inject(HttpClient);
-  private readonly API_URL = 'http://localhost:3001/publicaciones';
+  private readonly API_URL = `${environment.apiUrl}/publicaciones`;
 
   getAll(
     ordenar: 'fecha' | 'likes' = 'fecha',
@@ -45,9 +46,15 @@ export class PublicacionesService {
       .pipe(catchError(this.handleError));
   }
 
-  toggleLike(id: string): Observable<{ likes: number }> {
+  like(id: string): Observable<{ likes: number }> {
     return this.http
       .post<{ likes: number }>(`${this.API_URL}/${id}/like`, {})
+      .pipe(catchError(this.handleError));
+  }
+
+  unlike(id: string): Observable<{ likes: number }> {
+    return this.http
+      .delete<{ likes: number }>(`${this.API_URL}/${id}/like`)
       .pipe(catchError(this.handleError));
   }
 

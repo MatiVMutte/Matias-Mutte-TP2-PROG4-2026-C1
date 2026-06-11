@@ -1,4 +1,6 @@
 import {
+  BadRequestException,
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -98,15 +100,26 @@ export class PublicacionesService {
     const pub = await this.publicacionModel.findById(id);
     if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
 
-    const userObjId = new Types.ObjectId(userId);
     const alreadyLiked = pub.likes.some(l => l.toString() === userId);
-
     if (alreadyLiked) {
-      pub.likes = pub.likes.filter(l => l.toString() !== userId) as Types.ObjectId[];
-    } else {
-      pub.likes.push(userObjId);
+      throw new ConflictException('Ya le diste me gusta a esta publicación.');
     }
 
+    pub.likes.push(new Types.ObjectId(userId));
+    await pub.save();
+    return { likes: pub.likes.length };
+  }
+
+  async unlike(id: string, userId: string): Promise<{ likes: number }> {
+    const pub = await this.publicacionModel.findById(id);
+    if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
+
+    const alreadyLiked = pub.likes.some(l => l.toString() === userId);
+    if (!alreadyLiked) {
+      throw new BadRequestException('No le habías dado me gusta a esta publicación.');
+    }
+
+    pub.likes = pub.likes.filter(l => l.toString() !== userId) as Types.ObjectId[];
     await pub.save();
     return { likes: pub.likes.length };
   }

@@ -1,65 +1,113 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, computed } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { Publicacion } from './models/publicacion.model';
+import { PublicacionesService } from './services/publicaciones.service';
+import { ToastService } from '../../shared/services/toast.service';
+import { PublicacionCard } from './components/publicacion-card/publicacion-card';
+import { NuevaPublicacionModal } from './components/nueva-publicacion-modal/nueva-publicacion-modal';
 
 @Component({
   selector: 'app-publicaciones',
   standalone: true,
-  imports: [],
+  imports: [PublicacionCard, NuevaPublicacionModal],
   templateUrl: './publicaciones.html',
   styleUrl: './publicaciones.css',
 })
 export class Publicaciones implements OnInit {
   private readonly title = inject(Title);
+  private readonly publicacionesService = inject(PublicacionesService);
+  private readonly toast = inject(ToastService);
 
-  ngOnInit(): void { this.title.setTitle('Publicaciones | AllUTN'); }
-  readonly publicaciones = signal<Publicacion[]>([
-    {
-      id: 1,
-      autor: 'María González',
-      avatar: '',
-      fecha: 'hace 2 horas',
-      titulo: 'Primer parcial de Programación IV',
-      mensaje: '¡Acabo de rendir el primer parcial! Fue bastante desafiante pero creo que me fue bien. ¿Alguien más rindió hoy?',
-      likes: 12,
-      liked: false,
-      comentarios: 4,
-    },
-    {
-      id: 2,
-      autor: 'Carlos Rodríguez',
-      avatar: '',
-      fecha: 'hace 5 horas',
-      titulo: 'Apuntes de Sistemas Operativos',
-      mensaje: 'Subo mis apuntes del módulo 3 de Sistemas Operativos. Espero les sirva a todos para preparar el final.',
-      likes: 28,
-      liked: false,
-      comentarios: 9,
-    },
-    {
-      id: 3,
-      autor: 'Laura Martínez',
-      avatar: '',
-      fecha: 'hace 1 día',
-      titulo: 'Grupo de estudio para Matemática III',
-      mensaje: 'Estoy armando un grupo de estudio para Matemática III. ¿Alguien se suma? Nos juntamos los martes y jueves a las 18hs en el aula 204.',
-      likes: 7,
-      liked: false,
-      comentarios: 15,
-    },
-  ]);
+  readonly publicaciones = signal<Publicacion[]>([]);
+  readonly isLoading = signal(false);
+  readonly isLoadingMore = signal(false);
+  readonly showModal = signal(false);
 
-  toggleLike(id: number): void {
-    this.publicaciones.update(list =>
-      list.map(p =>
-        p.id === id
-          ? { ...p, liked: !p.liked, likes: p.liked ? p.likes - 1 : p.likes + 1 }
-          : p
-      )
-    );
+  readonly ordenar = signal<'fecha' | 'likes'>('fecha');
+  readonly offset = signal(0);
+  readonly total = signal(0);
+  readonly limit = 10;
+
+  readonly hasMore = computed(() => this.offset() + this.limit < this.total());
+
+  ngOnInit(): void {
+    this.title.setTitle('Publicaciones | AllUTN');
+    this.load(true);
   }
 
-  getInitials(name: string): string {
-    return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+  load(reset = false): void {
+    if (reset) {
+      this.offset.set(0);
+      this.publicaciones.set([]);
+      this.isLoading.set(true);
+    } else {
+      this.isLoadingMore.set(true);
+    }
+
+    this.publicacionesService
+      .getAll(this.ordenar(), this.offset(), this.limit)
+      .subscribe({
+        next: (res) => {
+          if (reset) {
+            this.publicaciones.set(res.publicaciones);
+          } else {
+            this.publicaciones.update(list => [...list, ...res.publicaciones]);
+          }
+          this.total.set(res.total);
+          this.isLoading.set(false);
+          this.isLoadingMore.set(false);
+        },
+        error: (err: Error) => {
+          this.toast.error(err.message);
+          this.isLoading.set(false);
+          this.isLoadingMore.set(false);
+        },
+      });
+  }
+
+  cambiarOrden(orden: 'fecha' | 'likes'): void {
+    if (this.ordenar() === orden) return;
+    this.ordenar.set(orden);
+    this.load(true);
+  }
+
+  loadMore(): void {
+    this.offset.update(v => v + this.limit);
+    this.load(false);
+  }
+
+  onLike(id: string): void {
+    this.publicacionesService.toggleLike(id).subscribe({
+      next: (res) => {
+        this.publicaciones.update(list =>
+          list.map(p => {
+            if (p._id !== id) return p;
+            const user = JSON.parse(localStorage.getItem('allutn_user') ?? '{}');
+            const alreadyLiked = p.likes.includes(user._id);
+            const newLikes = alreadyLiked
+              ? p.likes.filter(l => l !== user._id)
+              : [...p.likes, user._id];
+            return { ...p, likes: newLikes, likesCount: res.likes };
+          })
+        );
+      },
+      error: (err: Error) => this.toast.error(err.message),
+    });
+  }
+
+  onDelete(id: string): void {
+    this.publicacionesService.delete(id).subscribe({
+      next: () => {
+        this.publicaciones.update(list => list.filter(p => p._id !== id));
+        this.total.update(v => v - 1);
+        this.toast.success('Publicación eliminada.');
+      },
+      error: (err: Error) => this.toast.error(err.message),
+    });
+  }
+
+  onCreated(pub: Publicacion): void {
+    this.showModal.set(false);
+    this.load(true);
   }
 }

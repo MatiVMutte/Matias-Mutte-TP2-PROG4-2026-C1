@@ -4,19 +4,34 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
 import { User, UserDocument } from '../../users/schemas/user.schema';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 
+export interface AuthResponse {
+  token: string;
+  user: Record<string, unknown>;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async register(dto: RegisterDto, avatarUrl: string): Promise<Omit<UserDocument, 'password'>> {
+  private generateToken(user: UserDocument): string {
+    return this.jwtService.sign({
+      sub: user._id,
+      username: user.username,
+      perfil: user.perfil,
+    });
+  }
+
+  async register(dto: RegisterDto, avatarUrl: string): Promise<AuthResponse> {
     const existingEmail = await this.userModel.findOne({ correo: dto.correo.toLowerCase() });
     if (existingEmail) {
       throw new BadRequestException('El correo ya está registrado.');
@@ -37,12 +52,12 @@ export class AuthService {
       perfil: dto.perfil ?? 'usuario',
     });
 
-    const user = created.toObject();
-    const { password: _, ...result } = user;
-    return result as Omit<UserDocument, 'password'>;
+    const userObj = created.toObject();
+    const { password: _, ...result } = userObj;
+    return { token: this.generateToken(created), user: result };
   }
 
-  async login(dto: LoginDto): Promise<Omit<UserDocument, 'password'>> {
+  async login(dto: LoginDto): Promise<AuthResponse> {
     const user = await this.userModel.findOne({
       $or: [
         { correo: dto.identifier.toLowerCase() },
@@ -55,7 +70,7 @@ export class AuthService {
     }
 
     if (!user.activo) {
-      throw new UnauthorizedException('Tu cuenta está deshabilitada.');
+      throw new UnauthorizedException('Tu cuenta está deshabilitada. Contactá al administrador.');
     }
 
     const passwordMatch = await bcrypt.compare(dto.password, user.password);
@@ -65,6 +80,6 @@ export class AuthService {
 
     const userObj = user.toObject();
     const { password: _, ...result } = userObj;
-    return result as Omit<UserDocument, 'password'>;
+    return { token: this.generateToken(user), user: result };
   }
 }

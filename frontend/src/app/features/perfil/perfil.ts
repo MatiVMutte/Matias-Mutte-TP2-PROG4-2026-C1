@@ -1,6 +1,10 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { Title } from '@angular/platform-browser';
-import { UltimaPublicacion } from './models/perfil.models';
+import { AuthService } from '../../core/services/auth.service';
+import { PublicacionesService } from '../publicaciones/services/publicaciones.service';
+import { ToastService } from '../../shared/services/toast.service';
+import { Publicacion } from '../publicaciones/models/publicacion.model';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-perfil',
@@ -11,52 +15,58 @@ import { UltimaPublicacion } from './models/perfil.models';
 })
 export class Perfil implements OnInit {
   private readonly title = inject(Title);
+  private readonly authService = inject(AuthService);
+  private readonly publicacionesService = inject(PublicacionesService);
+  private readonly toast = inject(ToastService);
+  private readonly router = inject(Router);
 
-  ngOnInit(): void { this.title.setTitle('Mi perfil | AllUTN'); }
-  readonly usuario = {
-    nombre: 'Juan',
-    apellido: 'Pérez',
-    username: 'juanperez',
-    correo: 'juan.perez@utn.edu.ar',
-    fechaNacimiento: '15/03/2000',
-    descripcion: 'Estudiante de Ingeniería en Sistemas. Apasionado por el desarrollo web y la tecnología.',
-    perfil: 'usuario',
-    avatar: '',
-  };
+  readonly currentUser = this.authService.currentUser;
+  readonly ultimasPublicaciones = signal<Publicacion[]>([]);
+  readonly isLoading = signal(true);
 
-  readonly ultimasPublicaciones: UltimaPublicacion[] = [
-    {
-      id: 1,
-      titulo: 'Apuntes de Programación IV',
-      mensaje: 'Comparto mis apuntes del módulo de Angular. Espero les sean útiles para el parcial.',
-      fecha: 'hace 3 días',
-      likes: 15,
-      comentarios: [
-        { autor: 'María G.', texto: '¡Gracias, muy claros!', fecha: 'hace 2 días' },
-        { autor: 'Carlos R.', texto: 'Justo lo que necesitaba', fecha: 'hace 1 día' },
-      ],
-    },
-    {
-      id: 2,
-      titulo: 'Consulta sobre Redes',
-      mensaje: '¿Alguien me puede explicar la diferencia entre TCP y UDP de forma simple?',
-      fecha: 'hace 1 semana',
-      likes: 4,
-      comentarios: [
-        { autor: 'Laura M.', texto: 'TCP garantiza entrega, UDP no pero es más rápido.', fecha: 'hace 6 días' },
-      ],
-    },
-    {
-      id: 3,
-      titulo: 'Proyecto integrador terminado',
-      mensaje: '¡Por fin terminamos el proyecto integrador del cuatrimestre! Fue un gran trabajo en equipo.',
-      fecha: 'hace 2 semanas',
-      likes: 32,
-      comentarios: [],
-    },
-  ];
+  readonly API_URL = 'http://localhost:3001';
+
+  ngOnInit(): void {
+    this.title.setTitle('Mi perfil | AllUTN');
+    const user = this.currentUser();
+    if (!user) {
+      this.router.navigate(['/login']);
+      return;
+    }
+    this.publicacionesService.getAll('fecha', 0, 3, user._id).subscribe({
+      next: (res) => {
+        this.ultimasPublicaciones.set(res.publicaciones);
+        this.isLoading.set(false);
+      },
+      error: (err: Error) => {
+        this.toast.error(err.message);
+        this.isLoading.set(false);
+      },
+    });
+  }
 
   getInitials(): string {
-    return (this.usuario.nombre[0] + this.usuario.apellido[0]).toUpperCase();
+    const user = this.currentUser();
+    if (!user) return '?';
+    return (user.nombre[0] + user.apellido[0]).toUpperCase();
+  }
+
+  formatDate(dateStr: string): string {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+    if (diffMins < 1) return 'hace un momento';
+    if (diffMins < 60) return `hace ${diffMins} min`;
+    if (diffHours < 24) return `hace ${diffHours} h`;
+    if (diffDays < 7) return `hace ${diffDays} día${diffDays > 1 ? 's' : ''}`;
+    return date.toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
   }
 }

@@ -1,33 +1,30 @@
 import { NestFactory } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import express from 'express';
 import { AppModule } from '../backend/src/app.module';
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-const server = express();
+let expressServer: any = null;
 let initError: Error | null = null;
 
-async function bootstrap() {
+const ready = (async () => {
   try {
-    const app = await NestFactory.create(AppModule, new ExpressAdapter(server), {
-      logger: ['error', 'warn'],
-    });
+    const app = await NestFactory.create(AppModule, { logger: ['error', 'warn'] });
     app.setGlobalPrefix('api');
     app.enableCors({ origin: true, credentials: true });
     await app.init();
+    expressServer = app.getHttpAdapter().getInstance();
   } catch (err) {
     initError = err as Error;
     console.error('NestJS init failed:', err);
   }
-}
-
-const ready = bootstrap();
+})();
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   await ready;
-  if (initError) {
-    (res as any).status(500).json({ error: 'Initialization failed', message: initError.message });
+  if (initError || !expressServer) {
+    const msg = initError?.message ?? 'Unknown initialization error';
+    res.writeHead(500, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Initialization failed', message: msg }));
     return;
   }
-  server(req as any, res as any);
+  expressServer(req, res);
 }

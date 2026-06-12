@@ -23,6 +23,18 @@ export class ComentariosService {
       .pipe(catchError(this.handleError));
   }
 
+  create(publicacionId: string, mensaje: string): Observable<{ comentario: any }> {
+    return this.http
+      .post<{ comentario: any }>(`${this.API_URL}/${publicacionId}/comentarios`, { mensaje })
+      .pipe(catchError(this.handleError));
+  }
+
+  update(publicacionId: string, comentarioId: string, mensaje: string): Observable<{ comentario: any }> {
+    return this.http
+      .put<{ comentario: any }>(`${this.API_URL}/${publicacionId}/comentarios/${comentarioId}`, { mensaje })
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let message = 'Ocurrió un error inesperado.';
     if (error.error?.message) {

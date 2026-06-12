@@ -58,4 +58,33 @@ export class ComentariosService {
     const total = await this.comentarioModel.countDocuments(filter);
     return { comentarios, total, offset: Number(offset), limit: Number(limit) };
   }
+
+  async create(publicacionId: string, mensaje: string, autorId: string) {
+    const pub = await this.publicacionModel.findById(publicacionId);
+    if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
+
+    const created = await this.comentarioModel.create({
+      publicacionId: new Types.ObjectId(publicacionId),
+      autor: new Types.ObjectId(autorId),
+      mensaje: mensaje.trim(),
+    });
+
+    const comentario = await this.comentarioModel.findById(created._id).populate('autor', 'nombre apellido username avatarUrl').lean();
+    return { comentario };
+  }
+
+  async update(publicacionId: string, id: string, mensaje: string, autorId: string) {
+    const pub = await this.publicacionModel.findById(publicacionId);
+    if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
+
+    const comentario = await this.comentarioModel.findOne({ _id: id, publicacionId: new Types.ObjectId(publicacionId), autor: new Types.ObjectId(autorId) });
+    if (!comentario) throw new NotFoundException('Comentario no encontrado o no tenés permiso para editarlo.');
+
+    comentario.mensaje = mensaje.trim();
+    comentario.modificado = true;
+    await comentario.save();
+
+    const updated = await this.comentarioModel.findById(id).populate('autor', 'nombre apellido username avatarUrl').lean();
+    return { comentario: updated };
+  }
 }

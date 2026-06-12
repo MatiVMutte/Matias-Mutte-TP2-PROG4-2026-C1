@@ -30,6 +30,12 @@ export class PublicacionesService {
       .pipe(catchError(this.handleError));
   }
 
+  getById(id: string): Observable<{ publicacion: Publicacion }> {
+    return this.http
+      .get<{ publicacion: Publicacion }>(`${this.API_URL}/${id}`)
+      .pipe(catchError(this.handleError));
+  }
+
   create(payload: CreatePublicacionPayload): Observable<Publicacion> {
     const formData = new FormData();
     formData.append('titulo', payload.titulo);

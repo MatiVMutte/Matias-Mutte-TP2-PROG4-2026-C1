@@ -23,6 +23,10 @@ export const routes: Routes = [
         loadComponent: () => import('./features/publicaciones/publicaciones').then(m => m.Publicaciones),
       },
       {
+        path: 'publicaciones/:id',
+        loadComponent: () => import('./features/publicaciones/pages/publicacion-detalle/publicacion-detalle').then(m => m.PublicacionDetalle),
+      },
+      {
         path: 'perfil',
         loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil),
       },

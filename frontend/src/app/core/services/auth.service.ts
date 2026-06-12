@@ -71,6 +71,24 @@ export class AuthService {
       );
   }
 
+  autorizar(): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/auth/autorizar`, {})
+      .pipe(
+        tap((res) => this.saveSession(res)),
+        catchError(this.handleError),
+      );
+  }
+
+  refrescar(): Observable<AuthResponse> {
+    return this.http
+      .post<AuthResponse>(`${this.API_URL}/auth/refrescar`, {})
+      .pipe(
+        tap((res) => this.saveSession(res)),
+        catchError(this.handleError),
+      );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

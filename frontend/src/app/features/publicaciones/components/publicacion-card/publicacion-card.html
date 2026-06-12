@@ -36,7 +36,10 @@
 
   <!-- Contenido -->
   <div>
-    <h2 class="text-white font-bold text-base mb-1">{{ post().titulo }}</h2>
+    <h2 [routerLink]="['/publicaciones', post()._id]"
+      class="text-white font-bold text-base mb-1 cursor-pointer hover:text-blue-300 transition">
+      {{ post().titulo }}
+    </h2>
     <p class="text-blue-100 text-sm leading-relaxed">{{ post().mensaje }}</p>
   </div>
 

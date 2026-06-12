@@ -7,6 +7,8 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -47,5 +49,25 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Post('autorizar')
+  @HttpCode(HttpStatus.OK)
+  async autorizar(@Headers('authorization') authHeader: string | undefined) {
+    if (!authHeader) {
+      throw new UnauthorizedException('Token requerido.');
+    }
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    return this.authService.autorizar(token);
+  }
+
+  @Post('refrescar')
+  @HttpCode(HttpStatus.OK)
+  async refrescar(@Headers('authorization') authHeader: string | undefined) {
+    if (!authHeader) {
+      throw new UnauthorizedException('Token requerido.');
+    }
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    return this.authService.refrescar(token);
   }
 }

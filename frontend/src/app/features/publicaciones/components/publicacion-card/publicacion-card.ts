@@ -1,4 +1,5 @@
 import { Component, input, output, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { Publicacion } from '../../models/publicacion.model';
 import { AuthService } from '../../../../core/services/auth.service';
 import { environment } from '../../../../../environments/environment';
@@ -6,7 +7,7 @@ import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-publicacion-card',
   standalone: true,
-  imports: [],
+  imports: [RouterLink],
   templateUrl: './publicacion-card.html',
 })
 export class PublicacionCard {

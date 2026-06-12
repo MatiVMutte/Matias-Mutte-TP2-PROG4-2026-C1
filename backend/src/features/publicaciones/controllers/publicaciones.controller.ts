@@ -69,6 +69,11 @@ export class PublicacionesController {
     });
   }
 
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
+    return this.publicacionesService.findOne(id);
+  }
+
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string, @CurrentUser() user: JwtPayload) {

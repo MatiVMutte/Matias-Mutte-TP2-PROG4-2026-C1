@@ -11,6 +11,12 @@ import { User, UserDocument } from '../../users/schemas/user.schema';
 import { RegisterDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 
+interface TokenPayload {
+  sub: string;
+  username: string;
+  perfil: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: Record<string, unknown>;
@@ -81,5 +87,44 @@ export class AuthService {
     const userObj = user.toObject();
     const { password: _, ...result } = userObj;
     return { token: this.generateToken(user), user: result };
+  }
+
+  async autorizar(token: string): Promise<AuthResponse> {
+    try {
+      const payload = this.jwtService.verify<TokenPayload>(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      const user = await this.userModel.findById(payload.sub);
+      if (!user || !user.activo) {
+        throw new UnauthorizedException('Token inválido.');
+      }
+      const userObj = user.toObject();
+      const { password: _, ...result } = userObj;
+      return { token, user: result };
+    } catch {
+      throw new UnauthorizedException('Token inválido o expirado.');
+    }
+  }
+
+  async refrescar(token: string): Promise<AuthResponse> {
+    try {
+      const payload = this.jwtService.verify<TokenPayload>(token, {
+        secret: process.env.JWT_SECRET,
+        ignoreExpiration: false,
+      });
+      const user = await this.userModel.findById(payload.sub);
+      if (!user || !user.activo) {
+        throw new UnauthorizedException('Token inválido.');
+      }
+      const newToken = this.jwtService.sign(
+        { sub: payload.sub, username: payload.username, perfil: payload.perfil },
+        { expiresIn: '15m' },
+      );
+      const userObj = user.toObject();
+      const { password: _, ...result } = userObj;
+      return { token: newToken, user: result };
+    } catch {
+      throw new UnauthorizedException('Token inválido o expirado.');
+    }
   }
 }

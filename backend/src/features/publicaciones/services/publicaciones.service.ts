@@ -81,6 +81,44 @@ export class PublicacionesService {
     return { publicaciones, total, offset: Number(offset), limit: Number(limit) };
   }
 
+  async findOne(id: string) {
+    const [publicacion] = await this.publicacionModel
+      .aggregate([
+        { $match: { _id: new Types.ObjectId(id), activo: true } },
+        { $addFields: { likesCount: { $size: '$likes' } } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'autor',
+            foreignField: '_id',
+            as: 'autorData',
+          },
+        },
+        { $unwind: { path: '$autorData', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            titulo: 1,
+            mensaje: 1,
+            imagenUrl: 1,
+            activo: 1,
+            likes: 1,
+            likesCount: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            'autorData._id': 1,
+            'autorData.nombre': 1,
+            'autorData.apellido': 1,
+            'autorData.username': 1,
+            'autorData.avatarUrl': 1,
+          },
+        },
+      ])
+      .exec();
+
+    if (!publicacion) throw new NotFoundException('Publicación no encontrada.');
+    return { publicacion };
+  }
+
   async delete(id: string, userId: string, perfil: string): Promise<void> {
     const pub = await this.publicacionModel.findById(id);
     if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');

@@ -89,6 +89,31 @@ export class AuthService {
       );
   }
 
+  updateProfile(data: {
+    nombre?: string;
+    apellido?: string;
+    descripcion?: string;
+    fechaNacimiento?: string;
+    profileImage?: File | null;
+  }): Observable<{ user: User }> {
+    const formData = new FormData();
+    if (data.nombre !== undefined) formData.append('nombre', data.nombre);
+    if (data.apellido !== undefined) formData.append('apellido', data.apellido);
+    if (data.descripcion !== undefined) formData.append('descripcion', data.descripcion);
+    if (data.fechaNacimiento !== undefined) formData.append('fechaNacimiento', data.fechaNacimiento);
+    if (data.profileImage) formData.append('profileImage', data.profileImage);
+
+    return this.http
+      .put<{ user: User }>(`${this.API_URL}/perfil`, formData)
+      .pipe(
+        tap((res) => {
+          localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+          this.currentUser.set(res.user);
+        }),
+        catchError(this.handleError),
+      );
+  }
+
   logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

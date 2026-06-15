@@ -59,6 +59,39 @@ export class ComentariosService {
     return { comentarios, total, offset: Number(offset), limit: Number(limit) };
   }
 
+  private async findWithAutorData(id: Types.ObjectId | string) {
+    const result = await this.comentarioModel
+      .aggregate([
+        { $match: { _id: new Types.ObjectId(id) } },
+        {
+          $lookup: {
+            from: 'users',
+            localField: 'autor',
+            foreignField: '_id',
+            as: 'autorData',
+          },
+        },
+        { $unwind: { path: '$autorData', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            publicacionId: 1,
+            mensaje: 1,
+            modificado: 1,
+            activo: 1,
+            createdAt: 1,
+            updatedAt: 1,
+            'autorData._id': 1,
+            'autorData.nombre': 1,
+            'autorData.apellido': 1,
+            'autorData.username': 1,
+            'autorData.avatarUrl': 1,
+          },
+        },
+      ])
+      .exec();
+    return result[0] ?? null;
+  }
+
   async create(publicacionId: string, mensaje: string, autorId: string) {
     const pub = await this.publicacionModel.findById(publicacionId);
     if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
@@ -69,7 +102,7 @@ export class ComentariosService {
       mensaje: mensaje.trim(),
     });
 
-    const comentario = await this.comentarioModel.findById(created._id).populate('autor', 'nombre apellido username avatarUrl').lean();
+    const comentario = await this.findWithAutorData(created._id);
     return { comentario };
   }
 
@@ -84,7 +117,7 @@ export class ComentariosService {
     comentario.modificado = true;
     await comentario.save();
 
-    const updated = await this.comentarioModel.findById(id).populate('autor', 'nombre apellido username avatarUrl').lean();
+    const updated = await this.findWithAutorData(id);
     return { comentario: updated };
   }
 }

@@ -42,6 +42,27 @@ export class UsersService {
     return { user: result };
   }
 
+  async updateProfile(
+    id: string,
+    data: { nombre?: string; apellido?: string; descripcion?: string; fechaNacimiento?: string },
+    avatarUrl?: string,
+  ) {
+    const user = await this.userModel.findById(id);
+    if (!user) throw new NotFoundException('Usuario no encontrado.');
+
+    if (data.nombre !== undefined) user.nombre = data.nombre;
+    if (data.apellido !== undefined) user.apellido = data.apellido;
+    if (data.descripcion !== undefined) user.descripcion = data.descripcion;
+    if (data.fechaNacimiento !== undefined) user.fechaNacimiento = data.fechaNacimiento;
+    if (avatarUrl) user.avatarUrl = avatarUrl;
+
+    await user.save();
+
+    const userObj = user.toObject();
+    const { password: _, ...result } = userObj;
+    return { user: result };
+  }
+
   async deshabilitar(id: string) {
     const user = await this.userModel.findById(id);
     if (!user) throw new NotFoundException('Usuario no encontrado.');

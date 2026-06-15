@@ -1,5 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
+import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { PublicacionesService } from '../publicaciones/services/publicaciones.service';
 import { ComentariosService } from '../publicaciones/services/comentarios.service';
@@ -12,7 +13,7 @@ import { environment } from '../../../environments/environment';
 @Component({
   selector: 'app-perfil',
   standalone: true,
-  imports: [],
+  imports: [FormsModule],
   templateUrl: './perfil.html',
   styleUrl: './perfil.css',
 })
@@ -28,6 +29,65 @@ export class Perfil implements OnInit {
   readonly ultimasPublicaciones = signal<Publicacion[]>([]);
   readonly comentariosPorPublicacion = signal<Map<string, Comentario[]>>(new Map());
   readonly isLoading = signal(true);
+
+  readonly showEditModal = signal(false);
+  readonly isSaving = signal(false);
+  readonly editNombre = signal('');
+  readonly editApellido = signal('');
+  readonly editDescripcion = signal('');
+  readonly editFechaNacimiento = signal('');
+  readonly editImage = signal<File | null>(null);
+
+  openEdit(): void {
+    const user = this.currentUser();
+    if (!user) return;
+    this.editNombre.set(user.nombre);
+    this.editApellido.set(user.apellido);
+    this.editDescripcion.set(user.descripcion ?? '');
+    this.editFechaNacimiento.set(user.fechaNacimiento);
+    this.editImage.set(null);
+    this.showEditModal.set(true);
+  }
+
+  closeEdit(): void {
+    this.showEditModal.set(false);
+  }
+
+  onImageChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files?.length) {
+      this.editImage.set(input.files[0]);
+    }
+  }
+
+  saveProfile(): void {
+    const nombre = this.editNombre().trim();
+    const apellido = this.editApellido().trim();
+    if (!nombre || !apellido) {
+      this.toast.error('Nombre y apellido son obligatorios.');
+      return;
+    }
+    this.isSaving.set(true);
+    this.authService
+      .updateProfile({
+        nombre,
+        apellido,
+        descripcion: this.editDescripcion().trim(),
+        fechaNacimiento: this.editFechaNacimiento(),
+        profileImage: this.editImage(),
+      })
+      .subscribe({
+        next: () => {
+          this.toast.success('Perfil actualizado correctamente.');
+          this.isSaving.set(false);
+          this.showEditModal.set(false);
+        },
+        error: (err: Error) => {
+          this.toast.error(err.message);
+          this.isSaving.set(false);
+        },
+      });
+  }
 
   getImageUrl(url: string | undefined): string {
     if (!url) return '';

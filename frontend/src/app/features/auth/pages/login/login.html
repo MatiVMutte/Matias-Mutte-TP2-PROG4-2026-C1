@@ -48,32 +48,6 @@
         <span class="text-red-400 text-xs min-h-4">{{ getError('password') }}</span>
       </div>
 
-      <!-- Password checkpoints -->
-      <div class="bg-white/5 border border-white/10 rounded-xl px-4 py-3 space-y-2">
-        <p class="text-blue-200 text-xs font-semibold mb-1">Requisitos de contraseña:</p>
-        <div class="flex items-center gap-2">
-          <span class="w-4 h-4 rounded-full flex items-center justify-center text-xs"
-            [class]="passwordChecks().minLength ? 'bg-green-500 text-white' : 'bg-white/10 text-blue-300'">
-            {{ passwordChecks().minLength ? '✓' : '·' }}
-          </span>
-          <span class="text-xs" [class]="passwordChecks().minLength ? 'text-green-400' : 'text-blue-300'">Mínimo 8 caracteres</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-4 h-4 rounded-full flex items-center justify-center text-xs"
-            [class]="passwordChecks().hasUppercase ? 'bg-green-500 text-white' : 'bg-white/10 text-blue-300'">
-            {{ passwordChecks().hasUppercase ? '✓' : '·' }}
-          </span>
-          <span class="text-xs" [class]="passwordChecks().hasUppercase ? 'text-green-400' : 'text-blue-300'">Al menos una letra mayúscula</span>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="w-4 h-4 rounded-full flex items-center justify-center text-xs"
-            [class]="passwordChecks().hasNumber ? 'bg-green-500 text-white' : 'bg-white/10 text-blue-300'">
-            {{ passwordChecks().hasNumber ? '✓' : '·' }}
-          </span>
-          <span class="text-xs" [class]="passwordChecks().hasNumber ? 'text-green-400' : 'text-blue-300'">Al menos un número</span>
-        </div>
-      </div>
-
       <!-- Submit -->
       <button
         type="submit"

@@ -35,6 +35,12 @@ export class ComentariosService {
       .pipe(catchError(this.handleError));
   }
 
+  delete(publicacionId: string, comentarioId: string): Observable<{ message: string }> {
+    return this.http
+      .delete<{ message: string }>(`${this.API_URL}/${publicacionId}/comentarios/${comentarioId}`)
+      .pipe(catchError(this.handleError));
+  }
+
   private handleError(error: HttpErrorResponse): Observable<never> {
     let message = 'Ocurrió un error inesperado.';
     if (error.error?.message) {

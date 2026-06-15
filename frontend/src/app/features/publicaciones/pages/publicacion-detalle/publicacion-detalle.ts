@@ -201,4 +201,19 @@ export class PublicacionDetalle implements OnInit {
     if (!user) return false;
     return com.autorData._id === user._id;
   }
+
+  onDeleteComentario(com: Comentario): void {
+    const pub = this.publicacion();
+    if (!pub) return;
+    
+    this.comentariosService.delete(pub._id, com._id).subscribe({
+      next: () => {
+        this.toast.success('Comentario eliminado.');
+        // Remove comment from list
+        this.comentarios.update((list) => list.filter(c => c._id !== com._id));
+        this.total.update((v) => v - 1);
+      },
+      error: (err: Error) => this.toast.error(err.message),
+    });
+  }
 }

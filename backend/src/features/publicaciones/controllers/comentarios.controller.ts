@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Put, Param, Query, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Param, Query, Body, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../auth/decorators/current-user.decorator';
 import type { JwtPayload } from '../../auth/strategies/jwt.strategy';
@@ -40,5 +40,15 @@ export class ComentariosController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.comentariosService.update(publicacionId, id, mensaje, user.sub);
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.OK)
+  async delete(
+    @Param('publicacionId') publicacionId: string,
+    @Param('id') id: string,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.comentariosService.delete(publicacionId, id, user.sub);
   }
 }

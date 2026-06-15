@@ -8,6 +8,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Publicacion, PublicacionDocument } from '../schemas/publicacion.schema';
+import { Comentario } from '../schemas/comentario.schema';
 import { CreatePublicacionDto } from '../dto/create-publicacion.dto';
 import { ListPublicacionesDto } from '../dto/list-publicaciones.dto';
 
@@ -16,6 +17,8 @@ export class PublicacionesService {
   constructor(
     @InjectModel(Publicacion.name)
     private readonly publicacionModel: Model<PublicacionDocument>,
+    @InjectModel(Comentario.name)
+    private readonly comentarioModel: Model<Comentario>,
   ) {}
 
   async create(
@@ -45,6 +48,18 @@ export class PublicacionesService {
       .aggregate([
         { $match: filter },
         { $addFields: { likesCount: { $size: '$likes' } } },
+        {
+          $lookup: {
+            from: 'comentarios',
+            let: { pubId: '$_id' },
+            pipeline: [
+              { $match: { $expr: { $eq: ['$publicacionId', '$$pubId'] }, activo: true } },
+              { $count: 'total' }
+            ],
+            as: 'comentariosCount'
+          }
+        },
+        { $addFields: { comentariosCount: { $ifNull: [{ $arrayElemAt: ['$comentariosCount.total', 0] }, 0] } } },
         { $sort: { [sortField]: -1 } },
         { $skip: Number(offset) },
         { $limit: Number(limit) },
@@ -65,6 +80,7 @@ export class PublicacionesService {
             activo: 1,
             likes: 1,
             likesCount: 1,
+            comentariosCount: 1,
             createdAt: 1,
             updatedAt: 1,
             'autorData._id': 1,

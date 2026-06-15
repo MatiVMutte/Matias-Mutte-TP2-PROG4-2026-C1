@@ -52,7 +52,14 @@ export class ProfileController {
     @Body() body: UpdateProfileBody,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    const avatarUrl = file ? await this.supabaseStorage.upload('avatars', file) : undefined;
+    let avatarUrl: string | undefined;
+    if (file) {
+      try {
+        avatarUrl = await this.supabaseStorage.upload('avatars', file);
+      } catch (err: any) {
+        throw new BadRequestException(`Error subiendo la imagen: ${err.message}`);
+      }
+    }
     return this.usersService.updateProfile(user.sub, body, avatarUrl);
   }
 }

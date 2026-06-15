@@ -120,4 +120,18 @@ export class ComentariosService {
     const updated = await this.findWithAutorData(id);
     return { comentario: updated };
   }
+
+  async delete(publicacionId: string, id: string, autorId: string) {
+    const pub = await this.publicacionModel.findById(publicacionId);
+    if (!pub || !pub.activo) throw new NotFoundException('Publicación no encontrada.');
+
+    const comentario = await this.comentarioModel.findOne({ _id: id, publicacionId: new Types.ObjectId(publicacionId), autor: new Types.ObjectId(autorId) });
+    if (!comentario) throw new NotFoundException('Comentario no encontrado o no tenés permiso para eliminarlo.');
+
+    // Baja lógica
+    comentario.activo = false;
+    await comentario.save();
+
+    return { message: 'Comentario eliminado correctamente' };
+  }
 }

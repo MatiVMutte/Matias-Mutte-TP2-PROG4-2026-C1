@@ -151,6 +151,28 @@ export class PublicacionDetalle implements OnInit {
     });
   }
 
+  readonly isAdmin = computed(() => this.currentUser()?.perfil === 'administrador');
+
+  readonly canDeletePost = computed(() => {
+    const user = this.currentUser();
+    const pub = this.publicacion();
+    if (!user || !pub) return false;
+    const owner = pub.autorData?._id === user._id || pub.autor === user._id;
+    return owner || user.perfil === 'administrador';
+  });
+
+  onDeletePost(): void {
+    const pub = this.publicacion();
+    if (!pub) return;
+    this.publicacionesService.delete(pub._id).subscribe({
+      next: () => {
+        this.toast.success('Publicación eliminada.');
+        this.router.navigate(['/publicaciones']);
+      },
+      error: (err: Error) => this.toast.error(err.message),
+    });
+  }
+
   getImageUrl(url: string | undefined): string {
     if (!url) return '';
     return url.startsWith('http') ? url : `${environment.apiUrl.replace('/api', '')}${url}`;

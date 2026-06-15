@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { adminGuard } from './core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -29,6 +30,16 @@ export const routes: Routes = [
       {
         path: 'perfil',
         loadComponent: () => import('./features/perfil/perfil').then(m => m.Perfil),
+      },
+      {
+        path: 'dashboard/usuarios',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/dashboard/pages/usuarios/usuarios').then(m => m.DashboardUsuarios),
+      },
+      {
+        path: 'dashboard/estadisticas',
+        canActivate: [adminGuard],
+        loadComponent: () => import('./features/dashboard/pages/estadisticas/estadisticas').then(m => m.DashboardEstadisticas),
       },
       { path: '', redirectTo: 'publicaciones', pathMatch: 'full' },
     ],

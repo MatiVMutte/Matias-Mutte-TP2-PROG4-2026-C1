@@ -1,3 +1,15 @@
+@if (initializing()) {
+  <div class="fixed inset-0 z-100 flex flex-col items-center justify-center gap-4"
+    style="background-color: #24346b;">
+    <img src="icon.svg" alt="AllUTN" class="w-16 h-16 rounded-full animate-pulse" />
+    <svg class="w-10 h-10 animate-spin text-blue-300" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+    </svg>
+    <p class="text-blue-200 text-sm font-medium">Cargando AllUTN...</p>
+  </div>
+}
+
 <router-outlet />
 <app-toast />
 <app-session-warning-modal />

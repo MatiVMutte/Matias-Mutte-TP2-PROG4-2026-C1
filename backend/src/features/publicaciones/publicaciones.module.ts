@@ -4,8 +4,10 @@ import { Publicacion, PublicacionSchema } from './schemas/publicacion.schema';
 import { Comentario, ComentarioSchema } from './schemas/comentario.schema';
 import { PublicacionesController } from './controllers/publicaciones.controller';
 import { ComentariosController } from './controllers/comentarios.controller';
+import { EstadisticasController } from './controllers/estadisticas.controller';
 import { PublicacionesService } from './services/publicaciones.service';
 import { ComentariosService } from './services/comentarios.service';
+import { EstadisticasService } from './services/estadisticas.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
@@ -16,8 +18,8 @@ import { AuthModule } from '../auth/auth.module';
     ]),
     AuthModule,
   ],
-  controllers: [PublicacionesController, ComentariosController],
-  providers: [PublicacionesService, ComentariosService],
+  controllers: [PublicacionesController, ComentariosController, EstadisticasController],
+  providers: [PublicacionesService, ComentariosService, EstadisticasService],
   exports: [PublicacionesService, ComentariosService],
 })
 export class PublicacionesModule {}

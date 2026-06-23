@@ -1,8 +1,9 @@
 import { Injectable, signal, inject } from '@angular/core';
 import { AuthService } from './auth.service';
 
-const WARNING_MS = 10 * 60 * 1000; // 10 minutos
-const SESSION_MS = 15 * 60 * 1000; // 15 minutos
+// TESTING MODE: Modal aparece a los 30 segundos
+const WARNING_MS = 30 * 1000; // 30 segundos (cambiar a 10 * 60 * 1000 para producción)
+const SESSION_MS = 60 * 1000; // 60 segundos (cambiar a 15 * 60 * 1000 para producción)
 
 @Injectable({ providedIn: 'root' })
 export class SessionTimerService {
